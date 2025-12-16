@@ -2,61 +2,282 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Epic Free Games – Live</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Epic Free & Upcoming</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
   <style>
-    body { font-family: Arial, sans-serif; background:#111; color:#eee; padding:20px; }
-    .game-card { background:#1e1e1e; padding:20px; border-radius:8px; max-width:500px; margin-bottom:20px; }
-    .game-image { max-width:100%; border-radius:6px; margin-bottom:10px; }
-    .label { color:#0af; font-weight:bold; }
-    .timer { font-size:1.1em; margin-top:8px; color:#0f0; }
-    h1, h2 { margin-top:0; }
+    /* --- MATERIAL DESIGN 3 TOKENS (Dark Mode Theme) --- */
+    :root {
+      /* Color Palette: Violet/Dark Theme */
+      --md-sys-color-background: #141218;
+      --md-sys-color-on-background: #E6E1E5;
+      
+      --md-sys-color-surface: #141218;
+      --md-sys-color-surface-container: #211F26;
+      --md-sys-color-surface-container-high: #2B2930;
+      
+      --md-sys-color-primary: #D0BCFF;
+      --md-sys-color-on-primary: #381E72;
+      --md-sys-color-primary-container: #4F378B;
+      --md-sys-color-on-primary-container: #EADDFF;
+
+      --md-sys-color-secondary: #CCC2DC;
+      --md-sys-color-secondary-container: #4A4458;
+      --md-sys-color-on-secondary-container: #E8DEF8;
+
+      --md-sys-color-tertiary: #EFB8C8;
+      
+      --md-sys-color-error: #F2B8B5;
+      
+      /* Typography */
+      --font-family: 'Roboto', sans-serif;
+      
+      /* Shapes */
+      --shape-corner-large: 24px;
+      --shape-corner-full: 100px; /* For pills/buttons */
+    }
+
+    /* --- RESET & BASE --- */
+    * { box-sizing: border-box; }
+    
+    body {
+      font-family: var(--font-family);
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-on-background);
+      margin: 0;
+      padding: 0;
+      line-height: 1.5;
+    }
+
+    /* --- LAYOUT --- */
+    header {
+      padding: 40px 20px 20px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 3.5rem; /* Display Small */
+      font-weight: 400;
+      margin: 0;
+      letter-spacing: -0.5px;
+      color: var(--md-sys-color-on-background);
+    }
+    
+    h1 span {
+      color: var(--md-sys-color-primary);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 60px 20px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      margin-top: 48px;
+      margin-bottom: 24px;
+      gap: 12px;
+    }
+
+    .section-title {
+      font-size: 1.75rem; /* Headline Small */
+      font-weight: 500;
+      margin: 0;
+      color: var(--md-sys-color-on-background);
+    }
+
+    .chip {
+      background: var(--md-sys-color-secondary-container);
+      color: var(--md-sys-color-on-secondary-container);
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    /* --- GRID & CARDS --- */
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    .game-card {
+      background-color: var(--md-sys-color-surface-container-high);
+      border-radius: var(--shape-corner-large);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      height: 100%;
+    }
+
+    .game-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+      background-color: #36343b; /* Slightly lighter on hover */
+    }
+
+    .card-image-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%; /* 16:9 Aspect Ratio */
+    }
+
+    .game-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-content {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .card-title {
+      font-size: 1.375rem; /* Title Large */
+      font-weight: 500;
+      margin: 0 0 8px 0;
+      line-height: 1.2;
+    }
+
+    .card-desc {
+      font-size: 0.875rem; /* Body Medium */
+      color: #CAC4D0; /* On Surface Variant */
+      margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-meta {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .countdown-badge {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--md-sys-color-tertiary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .date-range {
+      font-size: 0.75rem;
+      color: #938F99;
+      background: rgba(255,255,255,0.05);
+      padding: 4px 8px;
+      border-radius: 4px;
+      align-self: flex-start;
+    }
+
+    /* --- BUTTONS --- */
+    .btn-action {
+      margin-top: 20px;
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      text-decoration: none;
+      padding: 10px 24px;
+      border-radius: var(--shape-corner-full);
+      text-align: center;
+      font-weight: 500;
+      font-size: 0.875rem;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.2s;
+    }
+
+    .btn-action:hover {
+      opacity: 0.9;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* --- LOADING STATE --- */
+    #status {
+      text-align: center;
+      padding: 40px;
+      color: var(--md-sys-color-primary);
+      font-size: 1.2rem;
+    }
+    
+    /* Subtle pulsing animation for skeleton loading feel */
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
+    }
+    .loading-pulse {
+      animation: pulse 1.5s infinite ease-in-out;
+    }
   </style>
 </head>
 <body>
-  <h1>Epic Games – Free & Upcoming</h1>
-  <div id="status">Loading...</div>
 
-  <!-- CURRENT FREE GAME -->
-  <div id="currentGame" class="game-card" style="display:none;">
-    <h2>Current Free Game</h2>
-    <img id="currentImage" class="game-image" src="" alt="">
-    <h3 id="currentTitle"></h3>
-    <p id="currentDesc"></p>
-    <p><span class="label">Free from:</span> <span id="currentStart"></span></p>
-    <p><span class="label">Free until:</span> <span id="currentEnd"></span></p>
-    <p class="timer">Ends in: <span id="currentCountdown"></span></p>
-  </div>
+  <header>
+    <h1>Epic <span>Freebies</span></h1>
+  </header>
 
-  <!-- UPCOMING / UNLOCKING SOON GAME -->
-  <div id="upcomingGame" class="game-card" style="display:none;">
-    <h2>Unlocking Soon</h2>
-    <img id="upcomingImage" class="game-image" src="" alt="">
-    <h3 id="upcomingTitle"></h3>
-    <p id="upcomingDesc"></p>
-    <p><span class="label">Becomes free at:</span> <span id="upcomingStart"></span></p>
-    <p><span class="label">Free until:</span> <span id="upcomingEnd"></span></p>
-    <p class="timer">Unlocks in: <span id="upcomingCountdown"></span></p>
+  <div class="container">
+    <div id="status" class="loading-pulse">
+      <span class="material-icons-round" style="font-size: 48px;">downloading</span><br>
+      Fetching deals...
+    </div>
+
+    <div class="section-header">
+      <span class="material-icons-round" style="color: var(--md-sys-color-primary);">local_offer</span>
+      <h2 class="section-title">Free Now</h2>
+    </div>
+    <div id="currentList" class="games-grid"></div>
+
+    <div class="section-header">
+      <span class="material-icons-round" style="color: var(--md-sys-color-secondary);">upcoming</span>
+      <h2 class="section-title">Coming Soon</h2>
+    </div>
+    <div id="upcomingList" class="games-grid"></div>
   </div>
 
   <script>
-    // Same backend that the free-games page uses; contains current and upcoming promos
-    const API_URL =
-      "https://cors.kawiesh.top/https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=US&allowCountries=US";
+    const API_URL = "https://cors.kawiesh.top/https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=US&allowCountries=US";
 
     async function loadFreeGames() {
       const statusEl = document.getElementById("status");
+      const currentContainer = document.getElementById("currentList");
+      const upcomingContainer = document.getElementById("upcomingList");
+
       try {
         const res = await fetch(API_URL);
         if (!res.ok) throw new Error("HTTP " + res.status);
         const json = await res.json();
 
-        const elements = json.data.CCatalog?.searchStore?.elements
-          || json.data.Catalog?.searchStore?.elements
-          || [];
+        const elements = json.data?.Catalog?.searchStore?.elements || json.data?.CCatalog?.searchStore?.elements || [];
 
         const now = new Date();
-        let currentFree = null;
-        let upcomingFree = null;
+        const currentGames = [];
+        const upcomingGames = [];
 
         for (const el of elements) {
           const promos = el.promotions;
@@ -65,45 +286,38 @@
           const currentBlocks = promos.promotionalOffers || [];
           const upcomingBlocks = promos.upcomingPromotionalOffers || [];
 
-          // Find current free promo (discount 100%)
+          // Basic game info
+          const title = el.title;
+          const description = el.description || "No description available.";
+          const productSlug = el.productSlug || el.urlSlug || "";
+          const offerUrl = productSlug
+            ? "https://store.epicgames.com/en-US/p/" + productSlug
+            : "https://store.epicgames.com/en-US/free-games";
+          
+          // Improved image finding logic
+          const keyImages = el.keyImages || [];
+          let thumb = keyImages.find(k => k.type === "Thumbnail")?.url || 
+                      keyImages.find(k => k.type === "OfferImageWide")?.url ||
+                      keyImages[0]?.url || "";
+
+          // CURRENT free promos
           for (const block of currentBlocks) {
             for (const offer of block.promotionalOffers || []) {
               const start = new Date(offer.startDate);
               const end = new Date(offer.endDate);
-              if (now >= start && now <= end &&
-                  offer.discountSetting?.discountPercentage === 0) {
-                currentFree = {
-                  title: el.title,
-                  description: el.description || "",
-                  startDate: start,
-                  endDate: end,
-                  image: (el.keyImages || [])[0]?.url || ""
-                };
-                break;
+              if (now >= start && now <= end && offer.discountSetting?.discountPercentage === 0) {
+                currentGames.push({ title, description, startDate: start, endDate: end, image: thumb, url: offerUrl });
               }
             }
-            if (currentFree) break;
           }
 
-          // Find upcoming free promo (take the earliest upcoming)
+          // UPCOMING free promos
           for (const block of upcomingBlocks) {
             for (const offer of block.promotionalOffers || []) {
               const start = new Date(offer.startDate);
               const end = new Date(offer.endDate);
               if (now < start && offer.discountSetting?.discountPercentage === 0) {
-                const candidate = {
-                  title: el.title,
-                  description: el.description || "",
-                  startDate: start,
-                  endDate: end,
-                  image: (el.keyImages || [])[0]?.url || ""
-                };
-                if (
-                  !upcomingFree ||
-                  candidate.startDate < upcomingFree.startDate
-                ) {
-                  upcomingFree = candidate;
-                }
+                upcomingGames.push({ title, description, startDate: start, endDate: end, image: thumb, url: offerUrl });
               }
             }
           }
@@ -111,33 +325,89 @@
 
         statusEl.style.display = "none";
 
-        // Render current free game
-        if (currentFree) {
-          document.getElementById("currentTitle").textContent = currentFree.title;
-          document.getElementById("currentDesc").textContent = currentFree.description;
-          document.getElementById("currentStart").textContent =
-            currentFree.startDate.toLocaleString();
-          document.getElementById("currentEnd").textContent =
-            currentFree.endDate.toLocaleString();
+        // Render helpers
+        function formatDate(date) {
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute:'2-digit' });
+        }
 
-          const img1 = document.getElementById("currentImage");
-          if (currentFree.image) {
-            img1.src = currentFree.image;
-            img1.alt = currentFree.title;
-          } else {
-            img1.style.display = "none";
+        function createGameCard(game, isCurrent) {
+          const card = document.createElement("div");
+          card.className = "game-card";
+
+          // Image Section
+          const imgWrapper = document.createElement("div");
+          imgWrapper.className = "card-image-wrapper";
+          if (game.image) {
+            const img = document.createElement("img");
+            img.className = "game-image";
+            img.src = game.image;
+            img.alt = game.title;
+            imgWrapper.appendChild(img);
           }
+          card.appendChild(imgWrapper);
 
-          document.getElementById("currentGame").style.display = "block";
+          // Content Section
+          const content = document.createElement("div");
+          content.className = "card-content";
 
-          // Countdown until current promo ends
-          function updateCurrentCountdown() {
+          const h3 = document.createElement("h3");
+          h3.className = "card-title";
+          h3.textContent = game.title;
+          content.appendChild(h3);
+
+          const desc = document.createElement("p");
+          desc.className = "card-desc";
+          desc.textContent = game.description;
+          content.appendChild(desc);
+
+          // Meta / Countdown
+          const meta = document.createElement("div");
+          meta.className = "card-meta";
+
+          // Countdown Line
+          const timerDiv = document.createElement("div");
+          timerDiv.className = "countdown-badge";
+          const timerIcon = document.createElement("span");
+          timerIcon.className = "material-icons-round";
+          timerIcon.style.fontSize = "16px";
+          timerIcon.textContent = "timer";
+          const timerText = document.createElement("span");
+          timerText.textContent = "...";
+          
+          timerDiv.appendChild(timerIcon);
+          timerDiv.appendChild(timerText);
+          meta.appendChild(timerDiv);
+
+          // Date Range Line
+          const dateDiv = document.createElement("div");
+          dateDiv.className = "date-range";
+          dateDiv.textContent = isCurrent 
+            ? `Ends: ${formatDate(game.endDate)}` 
+            : `Starts: ${formatDate(game.startDate)}`;
+          meta.appendChild(dateDiv);
+
+          content.appendChild(meta);
+
+          // Button
+          const btn = document.createElement("a");
+          btn.className = "btn-action";
+          btn.href = game.url;
+          btn.target = "_blank";
+          btn.rel = "noopener noreferrer";
+          btn.innerHTML = `Get on Store <span class="material-icons-round" style="font-size:18px">open_in_new</span>`;
+          content.appendChild(btn);
+
+          card.appendChild(content);
+
+          // Live Countdown Logic
+          function updateCountdown() {
             const nowTime = new Date();
-            const diffMs = currentFree.endDate - nowTime;
-            const el = document.getElementById("currentCountdown");
+            const target = isCurrent ? game.endDate : game.startDate;
+            let diffMs = target - nowTime;
+
             if (diffMs <= 0) {
-              el.textContent = "Expired";
-              clearInterval(currentTimer);
+              timerText.textContent = isCurrent ? "Offer Expired" : "Unlocked!";
+              clearInterval(timerId);
               return;
             }
             const totalSeconds = Math.floor(diffMs / 1000);
@@ -145,62 +415,38 @@
             const hours = Math.floor((totalSeconds % 86400) / 3600);
             const minutes = Math.floor((totalSeconds % 3600) / 60);
             const seconds = totalSeconds % 60;
-            el.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-          }
-          updateCurrentCountdown();
-          const currentTimer = setInterval(updateCurrentCountdown, 1000);
-        }
-
-        // Render upcoming / unlocking game
-        if (upcomingFree) {
-          document.getElementById("upcomingTitle").textContent =
-            upcomingFree.title;
-          document.getElementById("upcomingDesc").textContent =
-            upcomingFree.description;
-          document.getElementById("upcomingStart").textContent =
-            upcomingFree.startDate.toLocaleString();
-          document.getElementById("upcomingEnd").textContent =
-            upcomingFree.endDate.toLocaleString();
-
-          const img2 = document.getElementById("upcomingImage");
-          if (upcomingFree.image) {
-            img2.src = upcomingFree.image;
-            img2.alt = upcomingFree.title;
-          } else {
-            img2.style.display = "none";
+            
+            let timeString = "";
+            if (days > 0) timeString += `${days}d `;
+            timeString += `${hours}h ${minutes}m ${seconds}s`;
+            
+            timerText.textContent = (isCurrent ? "Ends in " : "Unlocks in ") + timeString;
           }
 
-          document.getElementById("upcomingGame").style.display = "block";
+          updateCountdown();
+          const timerId = setInterval(updateCountdown, 1000);
 
-          // Countdown until upcoming promo starts (unlock time)
-          function updateUpcomingCountdown() {
-            const nowTime = new Date();
-            const diffMs = upcomingFree.startDate - nowTime;
-            const el = document.getElementById("upcomingCountdown");
-            if (diffMs <= 0) {
-              el.textContent = "Unlocked";
-              clearInterval(upcomingTimer);
-              return;
-            }
-            const totalSeconds = Math.floor(diffMs / 1000);
-            const days = Math.floor(totalSeconds / 86400);
-            const hours = Math.floor((totalSeconds % 86400) / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-            el.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-          }
-          updateUpcomingCountdown();
-          const upcomingTimer = setInterval(updateUpcomingCountdown, 1000);
+          return card;
         }
 
-        if (!currentFree && !upcomingFree) {
-          statusEl.style.display = "block";
-          statusEl.textContent = "No free game data found.";
+        // Render Current
+        if (currentGames.length) {
+          currentGames.forEach(game => currentContainer.appendChild(createGameCard(game, true)));
+        } else {
+          currentContainer.innerHTML = "<p style='padding:20px; color:#aaa'>No free games right now.</p>";
         }
+
+        // Render Upcoming
+        if (upcomingGames.length) {
+          upcomingGames.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+          upcomingGames.forEach(game => upcomingContainer.appendChild(createGameCard(game, false)));
+        } else {
+          upcomingContainer.innerHTML = "<p style='padding:20px; color:#aaa'>No upcoming games found.</p>";
+        }
+
       } catch (err) {
         console.error(err);
-        statusEl.textContent =
-          "Failed to load free games data. Check console for details.";
+        statusEl.innerHTML = `<span style="color:var(--md-sys-color-error)">Error loading games. Check console.</span>`;
       }
     }
 
