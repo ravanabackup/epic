@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Epic Free Games – Live</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#111; color:#eee; padding:20px; }
+    .game-card { background:#1e1e1e; padding:20px; border-radius:8px; max-width:500px; margin-bottom:20px; }
+    .game-image { max-width:100%; border-radius:6px; margin-bottom:10px; }
+    .label { color:#0af; font-weight:bold; }
+    .timer { font-size:1.1em; margin-top:8px; color:#0f0; }
+    h1, h2 { margin-top:0; }
+  </style>
+</head>
+<body>
+  <h1>Epic Games – Free & Upcoming</h1>
+  <div id="status">Loading...</div>
+
+  <!-- CURRENT FREE GAME -->
+  <div id="currentGame" class="game-card" style="display:none;">
+    <h2>Current Free Game</h2>
+    <img id="currentImage" class="game-image" src="" alt="">
+    <h3 id="currentTitle"></h3>
+    <p id="currentDesc"></p>
+    <p><span class="label">Free from:</span> <span id="currentStart"></span></p>
+    <p><span class="label">Free until:</span> <span id="currentEnd"></span></p>
+    <p class="timer">Ends in: <span id="currentCountdown"></span></p>
+  </div>
+
+  <!-- UPCOMING / UNLOCKING SOON GAME -->
+  <div id="upcomingGame" class="game-card" style="display:none;">
+    <h2>Unlocking Soon</h2>
+    <img id="upcomingImage" class="game-image" src="" alt="">
+    <h3 id="upcomingTitle"></h3>
+    <p id="upcomingDesc"></p>
+    <p><span class="label">Becomes free at:</span> <span id="upcomingStart"></span></p>
+    <p><span class="label">Free until:</span> <span id="upcomingEnd"></span></p>
+    <p class="timer">Unlocks in: <span id="upcomingCountdown"></span></p>
+  </div>
+
+  <script>
+    // Same backend that the free-games page uses; contains current and upcoming promos
+    const API_URL =
+      "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=US&allowCountries=US";
+
+    async function loadFreeGames() {
+      const statusEl = document.getElementById("status");
+      try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const json = await res.json();
+
+        const elements = json.data.CCatalog?.searchStore?.elements
+          || json.data.Catalog?.searchStore?.elements
+          || [];
+
+        const now = new Date();
+        let currentFree = null;
+        let upcomingFree = null;
+
+        for (const el of elements) {
+          const promos = el.promotions;
+          if (!promos) continue;
+
+          const currentBlocks = promos.promotionalOffers || [];
+          const upcomingBlocks = promos.upcomingPromotionalOffers || [];
+
+          // Find current free promo (discount 100%)
+          for (const block of currentBlocks) {
+            for (const offer of block.promotionalOffers || []) {
+              const start = new Date(offer.startDate);
+              const end = new Date(offer.endDate);
+              if (now >= start && now <= end &&
+                  offer.discountSetting?.discountPercentage === 0) {
+                currentFree = {
+                  title: el.title,
+                  description: el.description || "",
+                  startDate: start,
+                  endDate: end,
+                  image: (el.keyImages || [])[0]?.url || ""
+                };
+                break;
+              }
+            }
+            if (currentFree) break;
+          }
+
+          // Find upcoming free promo (take the earliest upcoming)
+          for (const block of upcomingBlocks) {
+            for (const offer of block.promotionalOffers || []) {
+              const start = new Date(offer.startDate);
+              const end = new Date(offer.endDate);
+              if (now < start && offer.discountSetting?.discountPercentage === 0) {
+                const candidate = {
+                  title: el.title,
+                  description: el.description || "",
+                  startDate: start,
+                  endDate: end,
+                  image: (el.keyImages || [])[0]?.url || ""
+                };
+                if (
+                  !upcomingFree ||
+                  candidate.startDate < upcomingFree.startDate
+                ) {
+                  upcomingFree = candidate;
+                }
+              }
+            }
+          }
+        }
+
+        statusEl.style.display = "none";
+
+        // Render current free game
+        if (currentFree) {
+          document.getElementById("currentTitle").textContent = currentFree.title;
+          document.getElementById("currentDesc").textContent = currentFree.description;
+          document.getElementById("currentStart").textContent =
+            currentFree.startDate.toLocaleString();
+          document.getElementById("currentEnd").textContent =
+            currentFree.endDate.toLocaleString();
+
+          const img1 = document.getElementById("currentImage");
+          if (currentFree.image) {
+            img1.src = currentFree.image;
+            img1.alt = currentFree.title;
+          } else {
+            img1.style.display = "none";
+          }
+
+          document.getElementById("currentGame").style.display = "block";
+
+          // Countdown until current promo ends
+          function updateCurrentCountdown() {
+            const nowTime = new Date();
+            const diffMs = currentFree.endDate - nowTime;
+            const el = document.getElementById("currentCountdown");
+            if (diffMs <= 0) {
+              el.textContent = "Expired";
+              clearInterval(currentTimer);
+              return;
+            }
+            const totalSeconds = Math.floor(diffMs / 1000);
+            const days = Math.floor(totalSeconds / 86400);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            el.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+          }
+          updateCurrentCountdown();
+          const currentTimer = setInterval(updateCurrentCountdown, 1000);
+        }
+
+        // Render upcoming / unlocking game
+        if (upcomingFree) {
+          document.getElementById("upcomingTitle").textContent =
+            upcomingFree.title;
+          document.getElementById("upcomingDesc").textContent =
+            upcomingFree.description;
+          document.getElementById("upcomingStart").textContent =
+            upcomingFree.startDate.toLocaleString();
+          document.getElementById("upcomingEnd").textContent =
+            upcomingFree.endDate.toLocaleString();
+
+          const img2 = document.getElementById("upcomingImage");
+          if (upcomingFree.image) {
+            img2.src = upcomingFree.image;
+            img2.alt = upcomingFree.title;
+          } else {
+            img2.style.display = "none";
+          }
+
+          document.getElementById("upcomingGame").style.display = "block";
+
+          // Countdown until upcoming promo starts (unlock time)
+          function updateUpcomingCountdown() {
+            const nowTime = new Date();
+            const diffMs = upcomingFree.startDate - nowTime;
+            const el = document.getElementById("upcomingCountdown");
+            if (diffMs <= 0) {
+              el.textContent = "Unlocked";
+              clearInterval(upcomingTimer);
+              return;
+            }
+            const totalSeconds = Math.floor(diffMs / 1000);
+            const days = Math.floor(totalSeconds / 86400);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            el.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+          }
+          updateUpcomingCountdown();
+          const upcomingTimer = setInterval(updateUpcomingCountdown, 1000);
+        }
+
+        if (!currentFree && !upcomingFree) {
+          statusEl.style.display = "block";
+          statusEl.textContent = "No free game data found.";
+        }
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent =
+          "Failed to load free games data. Check console for details.";
+      }
+    }
+
+    loadFreeGames();
+  </script>
+</body>
+</html>
