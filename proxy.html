@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Epic Free & Upcoming</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
+  <style>
+    /* --- MATERIAL DESIGN 3 TOKENS --- */
+    :root {
+      --md-sys-color-background: #141218;
+      --md-sys-color-on-background: #E6E1E5;
+      --md-sys-color-surface-container-high: #2B2930;
+      --md-sys-color-primary: #D0BCFF;
+      --md-sys-color-on-primary: #381E72;
+      --md-sys-color-secondary: #CCC2DC;
+      --md-sys-color-secondary-container: #4A4458;
+      --md-sys-color-on-secondary-container: #E8DEF8;
+      --md-sys-color-tertiary: #EFB8C8;
+      --md-sys-color-error: #F2B8B5;
+      --font-family: 'Roboto', sans-serif;
+      --shape-corner-large: 24px;
+      --shape-corner-full: 100px;
+    }
+
+    /* --- RESET & BASE --- */
+    * { box-sizing: border-box; }
+    body {
+      font-family: var(--font-family);
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-on-background);
+      margin: 0; padding: 0; line-height: 1.5;
+    }
+
+    /* --- LAYOUT --- */
+    header { padding: 40px 20px 20px; max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 3.5rem; font-weight: 400; margin: 0; letter-spacing: -0.5px; }
+    h1 span { color: var(--md-sys-color-primary); }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px 60px; }
+    .section-header { display: flex; align-items: center; margin-top: 48px; margin-bottom: 24px; gap: 12px; }
+    .section-title { font-size: 1.75rem; font-weight: 500; margin: 0; }
+
+    /* --- GRID & CARDS --- */
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .game-card {
+      background-color: var(--md-sys-color-surface-container-high);
+      border-radius: var(--shape-corner-large);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      height: 100%;
+    }
+    .game-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+    .card-image-wrapper { position: relative; width: 100%; padding-top: 56.25%; background: #211f26; }
+    .game-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+    .card-content { padding: 24px; display: flex; flex-direction: column; flex-grow: 1; }
+    .card-title { font-size: 1.375rem; font-weight: 500; margin: 0 0 8px; line-height: 1.2; }
+    .card-desc { font-size: 0.875rem; color: #CAC4D0; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .card-meta { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+    .countdown-badge { font-size: 0.875rem; font-weight: 500; color: var(--md-sys-color-tertiary); display: flex; align-items: center; gap: 6px; }
+    .date-range { font-size: 0.75rem; color: #938F99; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; align-self: flex-start; }
+    .btn-action { margin-top: 20px; background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); text-decoration: none; padding: 10px 24px; border-radius: var(--shape-corner-full); text-align: center; font-weight: 500; display: inline-flex; justify-content: center; align-items: center; gap: 8px; }
+
+    #status { text-align: center; padding: 40px; color: var(--md-sys-color-primary); font-size: 1.2rem; }
+    @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+    .loading-pulse { animation: pulse 1.5s infinite ease-in-out; }
+  </style>
+</head>
+<body>
+
+  <header><h1>Epic <span>Freebies</span></h1></header>
+
+  <div class="container">
+    <div id="status" class="loading-pulse">
+      <span class="material-icons-round" style="font-size: 48px;">downloading</span><br>Fetching deals...
+    </div>
+
+    <div class="section-header">
+      <span class="material-icons-round" style="color: var(--md-sys-color-primary);">local_offer</span>
+      <h2 class="section-title">Free Now</h2>
+    </div>
+    <div id="currentList" class="games-grid"></div>
+
+    <div class="section-header">
+      <span class="material-icons-round" style="color: var(--md-sys-color-secondary);">upcoming</span>
+      <h2 class="section-title">Coming Soon</h2>
+    </div>
+    <div id="upcomingList" class="games-grid"></div>
+  </div>
+
+  <script>
+    const PROXY = "https://cors.kawiesh.top/";
+    const API_URL = PROXY + "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=US&allowCountries=US";
+    const CDN_BASE = "https://cdn1.epicgames.com/";
+
+    async function loadFreeGames() {
+      const statusEl = document.getElementById("status");
+      const currentContainer = document.getElementById("currentList");
+      const upcomingContainer = document.getElementById("upcomingList");
+
+      try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const json = await res.json();
+        const elements = json.data?.Catalog?.searchStore?.elements || json.data?.CCatalog?.searchStore?.elements || [];
+
+        const now = new Date();
+        const currentGames = [];
+        const upcomingGames = [];
+
+        for (const el of elements) {
+          if (!el.promotions) continue;
+
+          const title = el.title;
+          const description = el.description || "No description available.";
+          const productSlug = el.productSlug || el.urlSlug || "";
+          const offerUrl = productSlug ? "https://store.epicgames.com/en-US/p/" + productSlug : "https://store.epicgames.com/en-US/free-games";
+          
+          // --- IMAGE LOGIC WITH DOUBLE PROXY PROTECTION ---
+          const keyImages = el.keyImages || [];
+          let rawImg = keyImages.find(k => k.type === "Thumbnail")?.url || 
+                       keyImages.find(k => k.type === "OfferImageWide")?.url ||
+                       keyImages[0]?.url || "";
+
+          let thumb = "";
+          if (rawImg) {
+            // Prepend CDN if it's a relative path, then wrap everything in the PROXY
+            const fullUrl = rawImg.startsWith('http') ? rawImg : CDN_BASE + rawImg;
+            thumb = PROXY + fullUrl;
+          }
+
+          const currentBlocks = el.promotions.promotionalOffers || [];
+          const upcomingBlocks = el.promotions.upcomingPromotionalOffers || [];
+
+          currentBlocks.forEach(block => {
+            block.promotionalOffers.forEach(offer => {
+              const start = new Date(offer.startDate);
+              const end = new Date(offer.endDate);
+              if (now >= start && now <= end && offer.discountSetting?.discountPercentage === 0) {
+                currentGames.push({ title, description, startDate: start, endDate: end, image: thumb, url: offerUrl });
+              }
+            });
+          });
+
+          upcomingBlocks.forEach(block => {
+            block.promotionalOffers.forEach(offer => {
+              const start = new Date(offer.startDate);
+              const end = new Date(offer.endDate);
+              if (now < start && offer.discountSetting?.discountPercentage === 0) {
+                upcomingGames.push({ title, description, startDate: start, endDate: end, image: thumb, url: offerUrl });
+              }
+            });
+          });
+        }
+
+        statusEl.style.display = "none";
+
+        function createGameCard(game, isCurrent) {
+          const card = document.createElement("div");
+          card.className = "game-card";
+          card.innerHTML = `
+            <div class="card-image-wrapper">
+              ${game.image ? `<img class="game-image" src="${game.image}" alt="${game.title}">` : ''}
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">${game.title}</h3>
+              <p class="card-desc">${game.description}</p>
+              <div class="card-meta">
+                <div class="countdown-badge">
+                  <span class="material-icons-round" style="font-size:16px">timer</span>
+                  <span class="timer-text">...</span>
+                </div>
+                <div class="date-range">
+                  ${isCurrent ? 'Ends: ' : 'Starts: '} ${game[isCurrent ? 'endDate' : 'startDate'].toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute:'2-digit' })}
+                </div>
+              </div>
+              <a href="${game.url}" target="_blank" class="btn-action">
+                Get on Store <span class="material-icons-round" style="font-size:18px">open_in_new</span>
+              </a>
+            </div>
+          `;
+
+          const timerText = card.querySelector(".timer-text");
+          const update = () => {
+            const diff = (isCurrent ? game.endDate : game.startDate) - new Date();
+            if (diff <= 0) {
+              timerText.textContent = isCurrent ? "Expired" : "Unlocked!";
+              return;
+            }
+            const d = Math.floor(diff / 86400000), h = Math.floor((diff / 3600000) % 24), m = Math.floor((diff / 60000) % 60), s = Math.floor((diff / 1000) % 60);
+            timerText.textContent = (isCurrent ? "Ends in " : "Unlocks in ") + `${d > 0 ? d + 'd ' : ''}${h}h ${m}m ${s}s`;
+          };
+          update();
+          setInterval(update, 1000);
+          return card;
+        }
+
+        if (currentGames.length) currentGames.forEach(g => currentContainer.appendChild(createGameCard(g, true)));
+        else currentContainer.innerHTML = "<p>No free games right now.</p>";
+
+        if (upcomingGames.length) {
+          upcomingGames.sort((a,b) => a.startDate - b.startDate);
+          upcomingGames.forEach(g => upcomingContainer.appendChild(createGameCard(g, false)));
+        } else upcomingContainer.innerHTML = "<p>No upcoming games.</p>";
+
+      } catch (err) {
+        statusEl.innerHTML = `<span style="color:var(--md-sys-color-error)">Failed to load data. Proxy may be down.</span>`;
+      }
+    }
+    loadFreeGames();
+  </script>
+</body>
+</html>
