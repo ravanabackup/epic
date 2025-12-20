@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Epic Free & Upcoming</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
+  <style>
+    /* --- MATERIAL DESIGN 3 TOKENS --- */
+    :root {
+      --md-sys-color-background: #141218;
+      --md-sys-color-on-background: #E6E1E5;
+      --md-sys-color-surface-container-high: #2B2930;
+      --md-sys-color-primary: #D0BCFF;
+      --md-sys-color-on-primary: #381E72;
+      --md-sys-color-secondary: #CCC2DC;
+      --md-sys-color-secondary-container: #4A4458;
+      --md-sys-color-on-secondary-container: #E8DEF8;
+      --md-sys-color-tertiary: #EFB8C8;
+      --md-sys-color-error: #F2B8B5;
+      --font-family: 'Roboto', sans-serif;
+      --shape-corner-large: 24px;
+      --shape-corner-full: 100px;
+    }
+
+    * { box-sizing: border-box; }
+    
+    body {
+      font-family: var(--font-family);
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-on-background);
+      margin: 0;
+      padding: 0;
+      line-height: 1.5;
+    }
+
+    header {
+      padding: 40px 20px 20px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 400;
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
+    
+    h1 span { color: var(--md-sys-color-primary); }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 60px 20px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      margin-top: 48px;
+      margin-bottom: 24px;
+      gap: 12px;
+    }
+
+    .section-title {
+      font-size: 1.75rem;
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    .game-card {
+      background-color: var(--md-sys-color-surface-container-high);
+      border-radius: var(--shape-corner-large);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease;
+      height: 100%;
+    }
+
+    .card-image-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      background: #1d1b20;
+    }
+
+    .game-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-content {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .card-title {
+      font-size: 1.375rem;
+      font-weight: 500;
+      margin: 0 0 8px 0;
+    }
+
+    .card-desc {
+      font-size: 0.875rem;
+      color: #CAC4D0;
+      margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-meta {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .countdown-badge {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--md-sys-color-tertiary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .date-range {
+      font-size: 0.75rem;
+      color: #938F99;
+      background: rgba(255,255,255,0.05);
+      padding: 4px 8px;
+      border-radius: 4px;
+      align-self: flex-start;
+    }
+
+    .btn-action {
+      margin-top: 20px;
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      text-decoration: none;
+      padding: 10px 24px;
+      border-radius: var(--shape-corner-full);
+      text-align: center;
+      font-weight: 500;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #status {
+      text-align: center;
+      padding: 20px;
+      color: var(--md-sys-color-primary);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Epic <span>Freebies</span></h1>
+  </header>
+
+  <div class="container">
+    <div id="status">Checking for updates...</div>
+
+    <div class="section-header">
+      <span class="material-icons-round" style="color: var(--md-sys-color-secondary);">upcoming</span>
+      <h2 class="section-title">Coming Soon</h2>
+    </div>
+    <div id="upcomingList" class="games-grid"></div>
+
+    <div class="section-header">
+      <span class="material-icons-round" style="color: var(--md-sys-color-primary);">local_offer</span>
+      <h2 class="section-title">Free Now</h2>
+    </div>
+    <div id="currentList" class="games-grid"></div>
+  </div>
+
+  <script>
+    const API_URL = "https://cors.kawiesh.top/https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=US&allowCountries=US";
+    
+    let hasUpcomingGames = false;
+    let activeTimers = [];
+
+    async function loadFreeGames(isAutoRefresh = false) {
+      const statusEl = document.getElementById("status");
+      const currentContainer = document.getElementById("currentList");
+      const upcomingContainer = document.getElementById("upcomingList");
+
+      try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error("Fetch failed");
+        const json = await res.json();
+        const elements = json.data?.Catalog?.searchStore?.elements || [];
+
+        const now = new Date();
+        const currentGames = [];
+        const upcomingGames = [];
+
+        elements.forEach(el => {
+          const promos = el.promotions;
+          if (!promos) return;
+
+          const title = el.title;
+          const description = el.description || "No description available.";
+          const productSlug = el.productSlug || el.urlSlug || "";
+          const offerUrl = productSlug ? `https://store.epicgames.com/en-US/p/${productSlug}` : "https://store.epicgames.com/en-US/free-games";
+          
+          const keyImages = el.keyImages || [];
+          const thumb = keyImages.find(k => k.type === "Thumbnail")?.url || keyImages[0]?.url || "";
+
+          // Process Current
+          (promos.promotionalOffers || []).forEach(block => {
+            block.promotionalOffers.forEach(offer => {
+              const start = new Date(offer.startDate);
+              const end = new Date(offer.endDate);
+              if (now >= start && now <= end && offer.discountSetting?.discountPercentage === 0) {
+                currentGames.push({ title, description, startDate: start, endDate: end, image: thumb, url: offerUrl });
+              }
+            });
+          });
+
+          // Process Upcoming
+          (promos.upcomingPromotionalOffers || []).forEach(block => {
+            block.promotionalOffers.forEach(offer => {
+              const start = new Date(offer.startDate);
+              const end = new Date(offer.endDate);
+              if (now < start && offer.discountSetting?.discountPercentage === 0) {
+                upcomingGames.push({ title, description, startDate: start, endDate: end, image: thumb, url: offerUrl });
+              }
+            });
+          });
+        });
+
+        // Clear existing interval timers to prevent memory leaks
+        activeTimers.forEach(id => clearInterval(id));
+        activeTimers = [];
+
+        // Update UI
+        statusEl.style.display = "none";
+        hasUpcomingGames = upcomingGames.length > 0;
+
+        renderSection(currentContainer, currentGames, true);
+        renderSection(upcomingContainer, upcomingGames, false);
+
+      } catch (err) {
+        console.error(err);
+        statusEl.innerHTML = "Update failed. Retrying in 1m...";
+      }
+    }
+
+    function renderSection(container, games, isCurrent) {
+      container.innerHTML = "";
+      if (games.length === 0) {
+        container.innerHTML = "<p style='color:#aaa'>None found.</p>";
+        return;
+      }
+      games.forEach(game => {
+        const card = createGameCard(game, isCurrent);
+        container.appendChild(card);
+      });
+    }
+
+    function createGameCard(game, isCurrent) {
+      const card = document.createElement("div");
+      card.className = "game-card";
+
+      const timeLabel = isCurrent ? "Ends: " : "Starts: ";
+      const targetDate = isCurrent ? game.endDate : game.startDate;
+
+      card.innerHTML = `
+        <div class="card-image-wrapper">
+          <img class="game-image" src="${game.image}" alt="${game.title}">
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">${game.title}</h3>
+          <p class="card-desc">${game.description}</p>
+          <div class="card-meta">
+            <div class="countdown-badge">
+              <span class="material-icons-round" style="font-size:16px">timer</span>
+              <span class="timer-text">...</span>
+            </div>
+            <div class="date-range">${timeLabel} ${targetDate.toLocaleDateString()}</div>
+          </div>
+          <a class="btn-action" href="${game.url}" target="_blank">View on Store</a>
+        </div>
+      `;
+
+      const timerText = card.querySelector(".timer-text");
+
+      function update() {
+        const diff = targetDate - new Date();
+        if (diff <= 0) {
+          timerText.textContent = isCurrent ? "Expired" : "Ready!";
+          return;
+        }
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        timerText.textContent = `${isCurrent ? 'Ends in ' : 'In '} ${h}h ${m}m ${s}s`;
+      }
+
+      update();
+      activeTimers.push(setInterval(update, 1000));
+      return card;
+    }
+
+    // INITIAL LOAD
+    loadFreeGames();
+
+    // AUTO REFRESH EVERY 1 MINUTE
+    // Only triggers API call if there are still upcoming (locked) games
+    setInterval(() => {
+      if (hasUpcomingGames) {
+        console.log("Auto-refreshing Mystery/Upcoming modules...");
+        loadFreeGames(true);
+      }
+    }, 60000);
+  </script>
+</body>
+</html>
